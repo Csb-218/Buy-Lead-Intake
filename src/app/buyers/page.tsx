@@ -1,10 +1,4 @@
-import { Suspense } from 'react'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { BuyersTable } from '@/components/buyers/buyers-table'
-import { BuyersFilters } from '@/components/buyers/buyers-filters'
-import { BuyersPagination } from '@/components/buyers/buyers-pagination'
+import { BuyersPageClient } from '@/components/buyers/buyers-page-client'
 import { prisma } from '@/lib/prisma'
 import { City, PropertyType, BuyerStatus, Timeline } from '@/generated/prisma'
 import { BuyerFilters, BuyersApiResponse } from '@/lib/types'
@@ -38,7 +32,7 @@ async function fetchBuyers(filters: BuyerFilters): Promise<BuyersApiResponse> {
   const offset = (page - 1) * limit
 
   // Build where clause
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   
   // Search functionality
   if (search) {
@@ -117,46 +111,10 @@ export default async function BuyersPage({ searchParams }: BuyersPageProps) {
   const data = await fetchBuyers(filters)
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Buyers</h1>
-          <p className="text-muted-foreground">
-            Manage and track your property buyers
-          </p>
-        </div>
-        <div>
-          <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
-            <Link href="/buyers/new">
-              <Plus className="h-4 w-4 mr-2" />
-              New Buyer
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <BuyersFilters filters={filters} />
-        
-        <div className="rounded-md border">
-          <BuyersTable buyers={data.buyers} />
-        </div>
-
-        <BuyersPagination pagination={data.pagination} />
-      </div>
-    </div>
+    <BuyersPageClient 
+      initialData={data}
+      filters={filters}
+    />
   )
 }
 
-// Loading component for Suspense
-function BuyersLoading() {
-  return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-        <div className="h-12 bg-gray-200 rounded"></div>
-        <div className="h-64 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-  )
-}
