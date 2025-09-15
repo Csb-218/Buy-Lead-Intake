@@ -1,4 +1,7 @@
 import { Suspense } from 'react'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { BuyersTable } from '@/components/buyers/buyers-table'
 import { BuyersFilters } from '@/components/buyers/buyers-filters'
 import { BuyersPagination } from '@/components/buyers/buyers-pagination'
@@ -74,6 +77,7 @@ async function fetchBuyers(filters: BuyerFilters): Promise<BuyersApiResponse> {
       budgetMax: true,
       timeline: true,
       status: true,
+      ownerId: true,
       updatedAt: true,
       createdAt: true,
     }
@@ -120,6 +124,14 @@ export default async function BuyersPage({ searchParams }: BuyersPageProps) {
           <p className="text-muted-foreground">
             Manage and track your property buyers
           </p>
+        </div>
+        <div>
+          <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+            <Link href="/buyers/new">
+              <Plus className="h-4 w-4 mr-2" />
+              New Buyer
+            </Link>
+          </Button>
         </div>
       </div>
 
