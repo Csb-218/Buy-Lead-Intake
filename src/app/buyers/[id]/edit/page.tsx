@@ -43,7 +43,7 @@ export default async function EditBuyerPage({ params }: EditBuyerPageProps) {
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Edit Buyer</h1>
           <p className="text-muted-foreground">
-            Update {buyer.fullName}'s information
+            Update {buyer.fullName}&apos;s information
           </p>
         </div>
 
