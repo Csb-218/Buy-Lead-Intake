@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Error from 'next/error'
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true)
@@ -42,9 +41,9 @@ export default function AuthForm() {
         }
         
         router.refresh()
-      } catch (error: unknown) {
+      } catch (error) {
         if (error instanceof Error) {
-          setError(error.message)
+          setError(error?.message || 'An unexpected error occurred.')
         } else {
           setError('An unexpected error occurred.')
         }
