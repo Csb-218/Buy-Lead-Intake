@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { canAccessBuyer } from '@/lib/admin'
+import { revalidatePath } from 'next/cache'
 
 
 export async function GET(
@@ -193,5 +194,8 @@ export async function DELETE(
       { error: 'Failed to delete buyer' },
       { status: 500 }
     )
+  }
+  finally{
+    revalidatePath('/buyers')
   }
 }
