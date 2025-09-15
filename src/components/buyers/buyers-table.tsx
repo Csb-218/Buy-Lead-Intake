@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react'
+import { useAuth } from '@/components/auth-provider'
+import { canAccessBuyer } from '@/lib/admin'
 import {
   Table,
   TableBody,
@@ -28,6 +30,7 @@ interface BuyersTableProps {
 export function BuyersTable({ buyers }: BuyersTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
 
   const handleSort = (column: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -50,6 +53,30 @@ export function BuyersTable({ buyers }: BuyersTableProps) {
 
   const handleEdit = (buyerId: string) => {
     router.push(`/buyers/${buyerId}/edit`)
+  }
+  
+  const handleDelete = async (buyerId: string, buyerName: string) => {
+    if (!confirm(`Are you sure you want to delete ${buyerName}? This action cannot be undone.`)) {
+      return
+    }
+    
+    try {
+      const response = await fetch(`/api/buyers/${buyerId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        alert(error.error || 'Failed to delete buyer')
+        return
+      }
+      
+      // Refresh the page to show updated list
+      router.refresh()
+    } catch (error) {
+      console.error('Error deleting buyer:', error)
+      alert('Failed to delete buyer')
+    }
   }
 
   if (buyers.length === 0) {
@@ -170,9 +197,19 @@ export function BuyersTable({ buyers }: BuyersTableProps) {
                   <DropdownMenuItem onClick={() => handleView(buyer.id)}>
                     View
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleEdit(buyer.id)}>
-                    Edit
-                  </DropdownMenuItem>
+                  {canAccessBuyer(user, buyer.ownerId, 'edit') && (
+                    <DropdownMenuItem onClick={() => handleEdit(buyer.id)}>
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {canAccessBuyer(user, buyer.ownerId, 'delete') && (
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(buyer.id, buyer.fullName)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

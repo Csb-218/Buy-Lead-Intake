@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
+import { useAuth } from '@/components/auth-provider'
+import { getBuyerPermissions } from '@/lib/admin'
 import {
   Edit,
   Save,
@@ -67,9 +69,13 @@ interface BuyerEditableViewProps {
 
 export function BuyerEditableView({ buyer }: BuyerEditableViewProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  
+  const permissions = getBuyerPermissions(user, buyer.ownerId)
+  const { canEdit, isAdmin, isOwner } = permissions
 
   const form = useForm<BuyerFormValues>({
     resolver: zodResolver(buyerSchema),
@@ -121,11 +127,16 @@ export function BuyerEditableView({ buyer }: BuyerEditableViewProps) {
         throw new Error(result.error || 'Failed to update buyer')
       }
 
-      setIsEditing(false)
+      setIsLoading(false)
       router.refresh()
     } catch (error) {
       console.error('Error updating buyer:', error)
-      setError(error instanceof Error ? error.message : 'Failed to update buyer')
+      
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('Failed to update buyer')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -557,16 +568,32 @@ export function BuyerEditableView({ buyer }: BuyerEditableViewProps) {
   // Read-only view
   return (
     <div className="space-y-8">
-      {/* Action Button */}
-      <div className="flex items-center justify-end">
-        <Button
-          onClick={handleEdit}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Edit Information
-        </Button>
-      </div>
+      {/* Action Button - Only show for admin users */}
+      {canEdit && (
+        <div className="flex items-center justify-end">
+          <Button
+            onClick={handleEdit}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Information
+          </Button>
+        </div>
+      )}
+      
+      {/* Permission message */}
+      {!canEdit && (
+        <div className="flex items-center justify-end">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Permission:</span> 
+              {isAdmin ? 
+                'You have admin access to edit any buyer record.' : 
+                'You can only edit buyer records you created.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

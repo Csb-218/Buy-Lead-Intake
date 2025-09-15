@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { canAccessBuyer } from '@/lib/admin'
 
 
 export async function GET(
@@ -40,11 +42,22 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Check admin permissions first
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
     const { id } = await params
     const data = await request.json()
     const { updatedAt: clientUpdatedAt, ...updateData } = data
     
-    // Get current buyer for concurrency check
+    // Get current buyer for permission and concurrency check
     const currentBuyer = await prisma.buyer.findUnique({
       where: { id }
     })
@@ -53,6 +66,14 @@ export async function PUT(
       return NextResponse.json(
         { error: 'Buyer not found' },
         { status: 404 }
+      )
+    }
+    
+    // Check if user can edit this specific buyer record
+    if (!canAccessBuyer(user, currentBuyer.ownerId, 'edit')) {
+      return NextResponse.json(
+        { error: 'Permission denied. You can only edit your own buyer records.' },
+        { status: 403 }
       )
     }
     
@@ -103,7 +124,7 @@ export async function PUT(
         await tx.buyerHistory.create({
           data: {
             buyerId: id,
-            changedBy: '00000000-0000-4000-8000-000000000001', // TODO: Get from auth context
+            changedBy: user.id, // Use authenticated user ID
             diff: JSON.parse(JSON.stringify(changes)),
           }
         })
@@ -117,6 +138,59 @@ export async function PUT(
     console.error('Error updating buyer:', error)
     return NextResponse.json(
       { error: 'Failed to update buyer' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Check admin permissions first
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
+    const { id } = await params
+    
+    // Get current buyer for permission check
+    const currentBuyer = await prisma.buyer.findUnique({
+      where: { id }
+    })
+    
+    if (!currentBuyer) {
+      return NextResponse.json(
+        { error: 'Buyer not found' },
+        { status: 404 }
+      )
+    }
+    
+    // Check if user can delete this specific buyer record
+    if (!canAccessBuyer(user, currentBuyer.ownerId, 'delete')) {
+      return NextResponse.json(
+        { error: 'Permission denied. You can only delete your own buyer records.' },
+        { status: 403 }
+      )
+    }
+    
+    // Delete buyer (history records will be cascade deleted)
+    await prisma.buyer.delete({
+      where: { id }
+    })
+    
+    return NextResponse.json({ message: 'Buyer deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting buyer:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete buyer' },
       { status: 500 }
     )
   }
