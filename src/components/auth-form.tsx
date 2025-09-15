@@ -25,11 +25,13 @@ export default function AuthForm() {
             email,
             password,
           })
+          
           if (error) throw error
         } else {
           const { error } = await supabase.auth.signUp({
             email,
             password,
+
           })
           if (error) throw error
           
@@ -104,7 +106,7 @@ export default function AuthForm() {
               disabled={isPending}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isPending ? 'Loading...' : isLogin ? 'Sign in' : 'Sign up'}
+              {isPending ? 'Signing...' : isLogin ? 'Sign in' : 'Sign up'}
             </button>
           </div>
 
@@ -120,7 +122,7 @@ export default function AuthForm() {
               {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
             </button>
             
-            {isLogin && (
+            {/* {isLogin && (
               <div className="bg-purple-50 border border-purple-200 rounded-md p-3 text-sm">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -129,13 +131,13 @@ export default function AuthForm() {
                   <span className="font-medium text-purple-800">Admin Access:</span>
                 </div>
                 <p className="text-purple-700 mt-1">
-                  Admin users will see additional controls and analytics after login.
+                  Admin users (with role: supabase_admin) will see additional controls and analytics after login.
                 </p>
                 <p className="text-purple-600 mt-1 text-xs">
-                  Admin emails: admin@example.com, ritik@admin.com, or @admin.com/@company.com domains
+                  Primary: Supabase role = "supabase_admin" | Fallback: Admin emails or @admin.com domains
                 </p>
               </div>
-            )}
+            )} */}
           </div>
         </form>
       </div>
