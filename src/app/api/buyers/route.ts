@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
         budgetMax: true,
         timeline: true,
         status: true,
+        ownerId: true,
         updatedAt: true,
         createdAt: true,
       }

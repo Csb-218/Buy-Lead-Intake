@@ -11,6 +11,7 @@ export interface BuyerListItem {
   budgetMax: number | null
   timeline: Timeline
   status: BuyerStatus
+  ownerId: string
   updatedAt: Date
   createdAt: Date
 }
