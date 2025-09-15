@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc'
 
     // Build where clause
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     // Search functionality - debounced search by fullName, phone, email
     if (search) {
