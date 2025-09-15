@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -64,14 +65,14 @@ export async function PUT(
     }
     
     // Calculate changes for history
-    const changes: Record<string, { oldValue: any; newValue: any }> = {}
+    const changes: Record<string, { oldValue: unknown; newValue: unknown }> = {}
     const fieldsToTrack = [
       'fullName', 'email', 'phone', 'city', 'propertyType', 'bhk', 'purpose',
       'budgetMin', 'budgetMax', 'timeline', 'source', 'status', 'notes', 'tags'
     ]
     
     fieldsToTrack.forEach(field => {
-      const oldValue = (currentBuyer as any)[field]
+      const oldValue = (currentBuyer as unknown as Record<string, unknown>)[field]
       const newValue = updateData[field]
       
       // Compare values (handle arrays and nulls properly)
@@ -103,7 +104,7 @@ export async function PUT(
           data: {
             buyerId: id,
             changedBy: '00000000-0000-4000-8000-000000000001', // TODO: Get from auth context
-            diff: changes,
+            diff: JSON.parse(JSON.stringify(changes)),
           }
         })
       }
