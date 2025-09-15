@@ -1,6 +1,15 @@
+import { redirect } from 'next/navigation'
 import { NewBuyerForm } from '@/components/buyers/new-buyer-form'
+import { createClient } from '@/lib/supabase/server'
 
-export default function NewBuyerPage() {
+export default async function NewBuyerPage() {
+  // Check authentication
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error || !user) {
+    redirect('/login')
+  }
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-6">
