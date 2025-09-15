@@ -5,12 +5,19 @@ import { prisma } from '@/lib/prisma'
 import { newBuyerSchema, type NewBuyerFormValues } from '@/lib/schemas/new-buyer-schema'
 import { BuyerStatus } from '@/generated/prisma'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import { isAdminUser } from '@/lib/admin'
 
-// This would typically come from your auth system
-// For now, we'll use a mock user ID in UUID format
-const getCurrentUserId = async (): Promise<string> => {
-  // TODO: Replace with actual auth logic
-  return '00000000-0000-0000-0000-000000000000'
+// Get current authenticated user and verify permissions
+const getCurrentUser = async () => {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error || !user) {
+    throw new Error('Authentication required')
+  }
+  
+  return user
 }
 
 export async function createBuyer(data: NewBuyerFormValues) {
@@ -18,8 +25,19 @@ export async function createBuyer(data: NewBuyerFormValues) {
     // Validate the input data
     const validatedData = newBuyerSchema.parse(data)
 
-    // Get current user ID
-    const ownerId = await getCurrentUserId()
+    // Get current authenticated user
+    const currentUser = await getCurrentUser()
+    
+    // Log user information for debugging
+    console.log('User creating buyer:', {
+      email: currentUser.email,
+      userId: currentUser.id,
+      role: currentUser.role,
+      isAdmin: isAdminUser(currentUser)
+    })
+    
+    // Use the authenticated user's ID as owner
+    const ownerId = currentUser.id
 
     // Create the buyer
     const newBuyer = await prisma.buyer.create({
