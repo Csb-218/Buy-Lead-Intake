@@ -64,7 +64,11 @@ export function BuyersFilters({ filters }: BuyersFiltersProps) {
   const clearFilters = () => {
     setSearchValue('')
     setHasUserInteracted(false)
-    router.push('/buyers')
+    filters.search = ''
+    filters.city = undefined
+    filters.propertyType = undefined
+    filters.status = undefined
+    filters.timeline = undefined
   }
 
   const hasActiveFilters = Boolean(
