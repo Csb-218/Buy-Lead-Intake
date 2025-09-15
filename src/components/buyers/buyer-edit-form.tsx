@@ -21,20 +21,21 @@ import {
 } from '@/components/ui/form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { City, PropertyType, BuyerStatus, Timeline, BHK, Purpose, Source, Buyer } from '@/generated/prisma'
+import { updateBuyer } from '@/lib/actions/create-buyer'
 
 const buyerSchema = z.object({
   fullName: z.string().min(1, 'Name is required').max(80, 'Name too long'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().min(10, 'Phone number is required').max(15, 'Phone too long'),
-  city: z.nativeEnum(City),
-  propertyType: z.nativeEnum(PropertyType),
-  bhk: z.nativeEnum(BHK).optional(),
-  purpose: z.nativeEnum(Purpose),
+  city: z.enum(City),
+  propertyType: z.enum(PropertyType),
+  bhk: z.enum(BHK).optional(),
+  purpose: z.enum(Purpose),
   budgetMin: z.number().min(0).optional(),
   budgetMax: z.number().min(0).optional(),
-  timeline: z.nativeEnum(Timeline),
-  source: z.nativeEnum(Source),
-  status: z.nativeEnum(BuyerStatus),
+  timeline: z.enum(Timeline),
+  source: z.enum(Source),
+  status: z.enum(BuyerStatus),
   notes: z.string().max(1000, 'Notes too long').optional(),
   tags: z.array(z.string()).optional(),
 })
@@ -71,33 +72,10 @@ export function BuyerEditForm({ buyer }: BuyerEditFormProps) {
 
   const onSubmit = async (data: BuyerFormValues) => {
     setIsLoading(true)
-    
-    try {
-      const response = await fetch(`/api/buyers/${buyer.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          email: data.email || null,
-          budgetMin: data.budgetMin || null,
-          budgetMax: data.budgetMax || null,
-          notes: data.notes || null,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update buyer')
-      }
-
-      router.push(`/buyers/${buyer.id}`)
-      router.refresh()
-    } catch (error) {
-      console.error('Error updating buyer:', error)
-      // Handle error - you might want to show a toast notification here
-    } finally {
-      setIsLoading(false)
-    }
+    await updateBuyer(buyer.id, data)
+    setIsLoading(false)
   }
+  
 
   return (
     <Form {...form}>
