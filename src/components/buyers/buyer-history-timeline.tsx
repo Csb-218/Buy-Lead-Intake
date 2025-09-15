@@ -103,7 +103,7 @@ export function BuyerHistoryTimeline({ history, buyerId }: BuyerHistoryTimelineP
       <CardContent>
         <div className="space-y-6">
           {history.map((record, index) => {
-            const changes = record.diff as Record<string, HistoryChange>
+            const changes = record.diff as unknown as Record<string, HistoryChange>
             const changeEntries = Object.entries(changes)
             
             return (
