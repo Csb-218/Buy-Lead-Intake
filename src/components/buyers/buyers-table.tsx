@@ -72,7 +72,7 @@ export function BuyersTable({ buyers }: BuyersTableProps) {
       }
       
       // Refresh the page to show updated list
-      router.refresh()
+      
     } catch (error) {
       console.error('Error deleting buyer:', error)
       alert('Failed to delete buyer')
